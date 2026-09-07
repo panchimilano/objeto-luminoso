@@ -161,7 +161,7 @@ const ALPHA={documentado:1,observado:.8,inferido:.55,interpretado:.45,otro:.5,de
 const JWORD={4:'identitario',3:'determinante',2:'relevante',1:'secundario'};
 const CHORDS={S:[['O3-3','O7-4'],['O3-4','O6-4'],['O8-5','C4-3'],['O6-3','C5-2'],['U3-6','C4-2'],['O5-4','U4-2'],['O3-2','C1-3'],['O7-1','U4-4']],
               W:[['O3-3','O7-5'],['O3-4','C2-1'],['O5-3','O6-2'],['O8-5','C4-2'],['U3-1','C4-4'],['O6-3','C5-2'],['O3-2','C1-3'],['O5-7','U4-2']]};
-function metaOf(v){const m=(DATA[v]&&DATA[v].meta)||{};return {title:m.nombre||m.objeto||v,sub:[m.empresa,(m.disenadores||[]).join(' + '),m.anio].filter(Boolean).join(' · '),img:'img/'+(m.dibujo||m.foto||''),objeto:m.objeto||v,estado:m.estado_ficha||''}}
+function metaOf(v){const m=(DATA[v]&&DATA[v].meta)||{};return {title:m.nombre||m.objeto||v,sub:[m.empresa,(m.disenadores||[]).join(' + '),m.anio].filter(Boolean).join(' · '),img:'img/'+(m.foto||m.dibujo||''),isPhoto:!!m.foto,objeto:m.objeto||v,estado:m.estado_ficha||''}}
 let DATA,DEFS,COMMENTS,LAMPS=[],TAGS={},TITLES={zones:{},fields:{}},GRADES={},V=null,SELKEY=null,GROUP='empresa',OOLJOBS=[];
 const THEMES={fgp:{s:.42,v:.57,ds:.5,dv:.5,halo:.3,conf:'#c4503c'},vibia:{s:.26,v:.56,ds:.32,dv:.46,halo:.22,conf:'#e1736d'}};
 let THEME='fgp'; /* Fran (04/09 14:24): se queda con su gráfica; el tema Vibia queda en el código pero sin botón */const TH=()=>THEMES[THEME]||THEMES.fgp;
@@ -195,7 +195,7 @@ function render(){
   const defs=el('defs',{},svg);
   const fl=el('filter',{id:'blur',x:'-20%',y:'-20%',width:'140%',height:'140%'},defs);el('feGaussianBlur',{stdDeviation:4},fl);
   const clip=el('clipPath',{id:'ph'},defs);el('circle',{cx:G.cx,cy:G.cy,r:G.RPH},clip);
-  el('image',{href:MV.img,x:G.cx-G.RPH,y:G.cy-G.RPH,width:2*G.RPH,height:2*G.RPH,preserveAspectRatio:'xMidYMid meet','clip-path':'url(#ph)',transform:'translate('+G.cx+' '+G.cy+') scale(.8) translate('+(-G.cx)+' '+(-G.cy)+')',style:'filter:grayscale(1) contrast(1.08);mix-blend-mode:multiply'},svg);  // la lámpara ocupa el vacío central, por debajo de las cuerdas
+  el('image',{href:MV.img,x:G.cx-G.RPH,y:G.cy-G.RPH,width:2*G.RPH,height:2*G.RPH,preserveAspectRatio:'xMidYMid meet','clip-path':'url(#ph)',transform:'translate('+G.cx+' '+G.cy+') scale(.8) translate('+(-G.cx)+' '+(-G.cy)+')',style:MV.isPhoto?'':'filter:grayscale(1) contrast(1.08);mix-blend-mode:multiply'},svg);  // la lámpara ocupa el vacío central, por debajo de las cuerdas
   // halo: proyección de la importancia, por zona con su tono, desenfocada
   const halo=el('g',{filter:'url(#blur)',opacity:TH().halo},svg);
   d.planes.forEach(p=>{
@@ -328,7 +328,7 @@ function renderBase(){const q=($('#baseQ').value||'').toLowerCase();$('#baseN').
   const groups={};LAMPS.forEach(l=>{const hay=(l.objeto+' '+l.nombre+' '+l.empresa+' '+(l.disenadores||[]).join(' ')+' '+l.anio).toLowerCase();if(q&&!hay.includes(q))return;
     const keys=GROUP==='empresa'?[l.empresa||'—']:(l.disenadores&&l.disenadores.length?l.disenadores:['—']);keys.forEach(k=>(groups[k]=groups[k]||[]).push(l))});
   const found=Object.keys(groups).length>0;
-  $('#baseList').innerHTML=Object.keys(groups).sort().map(k=>`<div class="bgrp">${esc(k)}</div>`+groups[k].map(l=>`<div class="bl ${l.id===V?'on':''}" onclick="pick('${l.id.replace(/'/g,"\\'")}')"><img src="img/${esc(l.dibujo||l.foto||'')}" alt=""><div class="n">${esc(l.nombre)}${l.codigo?' <small style="display:inline">'+esc(l.codigo)+'</small>':''}<small>${esc(GROUP==='empresa'?(l.disenadores||[]).join(' + '):l.empresa)}${l.anio?' · '+l.anio:''}${l.existe===false||l.estado_ficha==='proyecto'?' · proyecto':''}</small></div><span class="st">${l.campos} c · ${l.desconocidos} ?</span></div>`).join('')).join('')||'<div class="bgrp">sin resultados</div>';
+  $('#baseList').innerHTML=Object.keys(groups).sort().map(k=>`<div class="bgrp">${esc(k)}</div>`+groups[k].map(l=>`<div class="bl ${l.id===V?'on':''}" onclick="pick('${l.id.replace(/'/g,"\\'")}')"><img src="img/${esc(l.foto||l.dibujo||'')}" alt=""><div class="n">${esc(l.nombre)}${l.codigo?' <small style="display:inline">'+esc(l.codigo)+'</small>':''}<small>${esc(GROUP==='empresa'?(l.disenadores||[]).join(' + '):l.empresa)}${l.anio?' · '+l.anio:''}${l.existe===false||l.estado_ficha==='proyecto'?' · proyecto':''}</small></div><span class="st">${l.campos} c · ${l.desconocidos} ?</span></div>`).join('')).join('')||'<div class="bgrp">sin resultados</div>';
   $('#oolCreate').innerHTML=!found&&q?`<div class="ool-actions"><button onclick="startOol('existente')">Pedirle la ficha al experto</button><button onclick="showNewOol()">Proyecto nuevo</button></div><div class="ool-brief" id="oolBrief"><textarea id="oolBriefText" placeholder="Contame en pocas líneas qué objeto querés proyectar, cómo se usa y qué debería lograr."></textarea><button class="ool-send" onclick="startOol('nuevo')">Crear proyecto</button></div>`:''}
 function showNewOol(){$('#oolBrief').classList.add('on');$('#oolBriefText').focus()}
 async function apiPost(url,body){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const d=await r.json();if(!r.ok)throw new Error(d.error||'no se pudo completar');return d}
@@ -346,6 +346,6 @@ setTheme('fgp');
 setInterval(()=>{if($('#base').classList.contains('on'))loadOolJobs()},5000);
 (async()=>{const [d,c,df,ls]=await Promise.all([fetch('api/data.json').then(r=>r.json()),fetch('api/comments.json').then(r=>r.json()),fetch('api/defs.json').then(r=>r.json()),fetch('api/lamps.json').then(r=>r.json())]);DATA=d;COMMENTS=c;DEFS=df;LAMPS=ls;const h=decodeURIComponent(location.hash.slice(1));V=(h&&DATA[h])?h:(LAMPS[0]||{}).id||Object.keys(DATA)[0];render()})();
 </script>
-<!-- OOL · exportación estática 2026-09-07 15:57 · generada por build_static.py -->
+<!-- OOL · exportación estática 2026-09-07 17:35 · generada por build_static.py -->
 </body>
 </html>
