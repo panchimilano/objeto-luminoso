@@ -132,9 +132,9 @@ textarea:focus{outline:2px solid #d9d3c4}
 <body>
 <div class="stage"><svg class="plate" id="plate" viewBox="0 0 1000 1000"></svg></div>
 <div class="hdr"><h1 id="title">—</h1><div class="sub" id="sub"></div><div class="meta" id="meta"></div></div>
-<div class="sel" id="sel"><button id="baseBtn">Base</button></div>
+<div class="sel" id="sel"><button id="baseBtn">Database</button></div>
 <div class="base" id="base"><button class="close" onclick="closeBase()">×</button>
-  <div class="kicker">Base · <span id="baseN">0</span> fichas</div>
+  <div class="kicker">Database · <span id="baseN">0</span> fichas</div>
   <div class="baserow"><input id="baseQ" placeholder="buscar lámpara, diseñador, empresa…"><div class="seg2"><button data-g="empresa" class="on">por empresa</button><button data-g="disenador">por diseñador</button></div></div>
   <div id="baseList"></div>
   <div id="oolCreate"></div>
@@ -142,7 +142,7 @@ textarea:focus{outline:2px solid #d9d3c4}
   <div class="bgrp">Trabajos del experto</div>
   <div id="oolJobs"><div class="ool-empty">cargando…</div></div>
 </div>
-<div class="hint">Base: todas las fichas · clic en plano, zona o campo · esc cierra · zoom del navegador para leer chico · cuerdas = etiqueta compartida entre zonas (<span id="nch">0</span> precisas; al elegir un campo aparecen todas las suyas)</div>
+<div class="hint">Database: todas las fichas · clic en plano, zona o campo · esc cierra · zoom del navegador para leer chico · cuerdas = etiqueta compartida entre zonas (<span id="nch">0</span> precisas; al elegir un campo aparecen todas las suyas)</div>
 <div class="legend"><span><i style="height:14px"></i>J4</span><span><i style="height:9px"></i>J3</span><span><i style="height:5px"></i>J2</span><span><i style="height:3px"></i>J1</span><span style="margin-left:8px"><span class="st"><i></i></span><span class="st"><i style="opacity:.8"></i></span><span class="st"><i style="opacity:.55"></i></span><span class="st"><i style="opacity:.42"></i></span><span class="st"><i style="background:none;border:1px solid var(--ink)"></i></span> documentado → desconocido</span></div>
 <div class="card" id="card"><button class="close" onclick="closeCard()">×</button><div id="cardBody"></div></div>
 <script>
@@ -315,6 +315,6 @@ setTheme('fgp');
 setInterval(()=>{if($('#base').classList.contains('on'))loadOolJobs()},5000);
 (async()=>{const [d,c,df,ls]=await Promise.all([fetch('api/data.json').then(r=>r.json()),fetch('api/comments.json').then(r=>r.json()),fetch('api/defs.json').then(r=>r.json()),fetch('api/lamps.json').then(r=>r.json())]);DATA=d;COMMENTS=c;DEFS=df;LAMPS=ls;const h=decodeURIComponent(location.hash.slice(1));V=(h&&DATA[h])?h:(LAMPS[0]||{}).id||Object.keys(DATA)[0];render()})();
 </script>
-<!-- OOL · exportación estática 2026-09-05 22:34 · generada por build_static.py -->
+<!-- OOL · exportación estática 2026-09-07 13:53 · generada por build_static.py -->
 </body>
 </html>
