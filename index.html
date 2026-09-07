@@ -183,7 +183,8 @@ function layout(d){
   const per=(2*Math.PI-G.GAPP*3)/total;let a=-Math.PI/2+G.GAPP/2;const PC=[];
   d.planes.forEach(p=>{p.a0=a;p.zones.forEach(z=>{z.a0=a;z.fields.forEach(f=>{f.a0=a;f.a1=a+per;f.am=a+per/2;a+=per});z.a1=a;z.am=(z.a0+z.a1)/2});p.a1=a;p.am=(p.a0+p.a1)/2;PC.push([p.am,HUE[p.name]??200]);a+=G.GAPP});
   const hueAt=ang=>{for(let i=0;i<3;i++){let [c0,h0]=PC[i],[c1,h1]=PC[(i+1)%3];if(c1<c0)c1+=2*Math.PI;const aa=ang>=c0?ang:ang+2*Math.PI;if(aa>=c0&&aa<=c1){if(h1>h0)h1-=360;return h0+(h1-h0)*(aa-c0)/(c1-c0)}}return PC[0][1]};
-  d.planes.forEach(p=>p.zones.forEach(z=>{z.hue=hueAt(z.am);z.col=hsv(z.hue);z.deep=hsv(z.hue,TH().ds,TH().dv);z.plane=p;z.fields.forEach(f=>{f.zone=z;f.plane=p})}));
+  // Fran (07/09): un color por plano, bien delimitado; las zonas se distinguen por claridad dentro del mismo color (leve deriva de tono, nunca fuera de la familia)
+  d.planes.forEach(p=>{const H=HUE[p.name]??200,n=p.zones.length;p.zones.forEach((z,i)=>{const t=n>1?i/(n-1):.5;z.hue=H+(t-.5)*10;z.col=hsv(z.hue,TH().s*(0.82+0.36*t),TH().v*(1.14-0.28*t));z.deep=hsv(H,TH().ds,TH().dv);z.plane=p;z.fields.forEach(f=>{f.zone=z;f.plane=p})})});
   return per;
 }
 
@@ -346,6 +347,6 @@ setTheme('fgp');
 setInterval(()=>{if($('#base').classList.contains('on'))loadOolJobs()},5000);
 (async()=>{const [d,c,df,ls]=await Promise.all([fetch('api/data.json').then(r=>r.json()),fetch('api/comments.json').then(r=>r.json()),fetch('api/defs.json').then(r=>r.json()),fetch('api/lamps.json').then(r=>r.json())]);DATA=d;COMMENTS=c;DEFS=df;LAMPS=ls;const h=decodeURIComponent(location.hash.slice(1));V=(h&&DATA[h])?h:(LAMPS[0]||{}).id||Object.keys(DATA)[0];render()})();
 </script>
-<!-- OOL · exportación estática 2026-09-07 17:37 · generada por build_static.py -->
+<!-- OOL · exportación estática 2026-09-07 17:41 · generada por build_static.py -->
 </body>
 </html>
