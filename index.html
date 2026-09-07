@@ -61,6 +61,13 @@ svg.plate{width:min(100vh,100%);height:min(100vh,100vw);max-width:100%;display:b
 .card .kicker b{color:var(--ink);font-weight:500}
 .card h2{font-family:var(--f-display);font-weight:var(--w-display);font-size:29px;line-height:1.1;margin:8px 0 4px}
 .card .q{color:var(--muted);font-size:14px}
+.card .hrow{display:flex;align-items:flex-start;gap:10px}.card .hrow h2{flex:1}
+.card .help{flex:none;margin-top:12px;width:26px;height:26px;border-radius:50%;border:1px solid var(--line,#cfc9bf);background:transparent;color:var(--muted);font-family:var(--f-mono);font-size:14px;line-height:24px;text-align:center;cursor:pointer;padding:0}
+.card .help:hover,.card .help.on{background:var(--ink);color:var(--paper,#f1eee7);border-color:var(--ink)}
+.card .guide .kicker{color:var(--ink)}
+.card .guide .def{margin:6px 0 10px;padding-left:10px;border-left:2px solid var(--line,#cfc9bf)}
+.card .guide .def b{display:block;font-weight:500}
+.card .guide .def small{color:var(--muted)}
 .sec{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
 .sec .kicker{margin-bottom:9px}
 .human{font-size:14.5px;line-height:1.6}
@@ -103,7 +110,7 @@ textarea:focus{outline:2px solid #d9d3c4}
 .plate .plabel{font-family:var(--f-plane);font-weight:var(--w-plane);font-size:23px;letter-spacing:var(--ls-plane);fill:var(--paper);pointer-events:none}
 .plate .scale{fill:none;stroke:var(--line);stroke-width:.8;stroke-dasharray:2.5 5}
 .plate .chord path{fill:none;stroke-linejoin:round;pointer-events:stroke}
-.plate .chord .curve{stroke:#d6d1c8;stroke-opacity:.9;stroke-width:.4}
+.plate .chord .curve{stroke:#dedad2;stroke-opacity:.7;stroke-width:.4}
 .plate .chord.wide{display:none}
 /* al seleccionar: las cuerdas siguen SIEMPRE por atrás; las elegidas suben a gris medio (nunca negro), el resto casi desaparece */
 .plate.dim .chord{opacity:.08}
@@ -148,7 +155,7 @@ textarea:focus{outline:2px solid #d9d3c4}
 <script>
 const $=(s,r=document)=>r.querySelector(s);
 const NS='http://www.w3.org/2000/svg';
-const G={cx:500,cy:500,RPH:65,RP0:125,RP1:148,RZ0:153,RZ1:213,RF0:219,LEN:{4:96,3:54,2:27,1:11,0:7},HOUT:17,HK:1.6,HADD:54,GAPP:.07,GAPZ:.009};
+const G={cx:500,cy:500,RPH:121,RP0:125,RP1:148,RZ0:153,RZ1:213,RF0:219,LEN:{4:96,3:54,2:27,1:11,0:7},HOUT:17,HK:1.6,HADD:54,GAPP:.07,GAPZ:.009};
 const HUE={'SINTAXIS':212,'PRAGMÁTICA':73,'SEMÁNTICA':341};
 const QUESTION={'SINTAXIS':'cómo está hecha','PRAGMÁTICA':'cómo se vive','SEMÁNTICA':'qué dice'};
 const ALPHA={documentado:1,observado:.8,inferido:.55,interpretado:.45,otro:.5,desconocido:0,conflicto:.9};
@@ -189,6 +196,7 @@ function render(){
   const defs=el('defs',{},svg);
   const fl=el('filter',{id:'blur',x:'-20%',y:'-20%',width:'140%',height:'140%'},defs);el('feGaussianBlur',{stdDeviation:4},fl);
   const clip=el('clipPath',{id:'ph'},defs);el('circle',{cx:G.cx,cy:G.cy,r:G.RPH},clip);
+  el('image',{href:MV.img,x:G.cx-G.RPH,y:G.cy-G.RPH,width:2*G.RPH,height:2*G.RPH,preserveAspectRatio:'xMidYMid meet','clip-path':'url(#ph)',transform:'translate('+G.cx+' '+G.cy+') scale(.8) translate('+(-G.cx)+' '+(-G.cy)+')',style:'filter:grayscale(1) contrast(1.08);mix-blend-mode:multiply'},svg);  // la lámpara ocupa el vacío central, por debajo de las cuerdas
   // halo: proyección de la importancia, por zona con su tono, desenfocada
   const halo=el('g',{filter:'url(#blur)',opacity:TH().halo},svg);
   d.planes.forEach(p=>{
@@ -240,22 +248,19 @@ function render(){
     el('title',{},c).textContent='#'+t+' · '+a.name+' ↔ '+b.name;if(fs.length<=4)nCh++}});
   $('#nch').textContent=nCh;
   // centro: la pieza
-  el('image',{href:MV.img,x:G.cx-G.RPH,y:G.cy-G.RPH,width:2*G.RPH,height:2*G.RPH,preserveAspectRatio:'xMidYMid slice','clip-path':'url(#ph)',style:'filter:grayscale(1) contrast(1.08)'},svg);
-  el('circle',{cx:G.cx,cy:G.cy,r:G.RPH,fill:'#fff','clip-path':'url(#ph)'},svg).remove();
-  el('circle',{cx:G.cx,cy:G.cy,r:G.RPH,fill:'none',stroke:getComputedStyle(document.body).getPropertyValue('--ink').trim()||'#262a2e','stroke-width':.8},svg);
   svg.addEventListener('click',e=>{if(e.target===svg)closeCard()});
 }
 
 /* ---------- la tarjeta ---------- */
 const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const paras=s=>(s||'').split(/\n{2,}/).map(p=>p.trim()).filter(Boolean).map(p=>`<p>${esc(p).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/_(.+?)_/g,'<i>$1</i>')}</p>`).join('');
-function showCard(html,selector){const c=$('#card');$('#cardBody').innerHTML=html;c.classList.add('on');document.body.classList.add('hascard');c.scrollTop=0;
+function showCard(html,selector){HELP=null;const c=$('#card');$('#cardBody').innerHTML=html;c.classList.add('on');document.body.classList.add('hascard');c.scrollTop=0;
   const svg=$('#plate');svg.querySelectorAll('.sel').forEach(e=>e.classList.remove('sel'));if(selector){svg.classList.add('dim');svg.querySelectorAll(selector).forEach(e=>e.classList.add('sel'))}else svg.classList.remove('dim')}
 function closeCard(){$('#card').classList.remove('on');document.body.classList.remove('hascard');const svg=$('#plate');svg.classList.remove('dim');svg.querySelectorAll('.sel,.rel').forEach(e=>e.classList.remove('sel','rel'))}
 function introRest(p){const lines=(p.intro||'').split('\n').map(l=>l.trim()).filter(Boolean);return lines.filter(l=>!l.startsWith('#')).slice(1).join('\n\n')}
 function openPlane(p){
   const zones=p.zones.map(z=>`<div class="z" onclick="openZoneId('${z.nodeId}')"><i style="background:${z.col}"></i>${esc(z.name)}<small>${z.fields.length} campos</small></div>`).join('');
-  showCard(`<div class="kicker">Plano</div><h2>${esc(p.name.charAt(0)+p.name.slice(1).toLowerCase())}</h2><div class="q">${QUESTION[p.name]||''}</div>
+  showCard(`<div class="kicker">Plano</div><div class="hrow"><h2>${esc(p.name.charAt(0)+p.name.slice(1).toLowerCase())}</h2>${helpBtn('plane',p.name)}</div><div class="q">${QUESTION[p.name]||''}</div>
     <div class="sec"><div class="kicker">Lectura humana</div><div class="human">${paras(p.descripcion)}</div></div>
     <div class="sec"><div class="kicker">Qué cubre este plano</div><div class="human">${paras(introRest(p))}</div></div>
     <div class="sec"><div class="kicker">Zonas</div><div class="zlist">${zones}</div></div>`,
@@ -265,7 +270,7 @@ function openZoneId(id){for(const p of DATA[V].planes)for(const z of p.zones)if(
 function openFieldId(id){for(const p of DATA[V].planes)for(const z of p.zones)for(const f of z.fields)if(f.id===id)return openField(f)}
 function openZone(z){
   const rows=z.fields.map(f=>`<div class="f" onclick="openFieldId('${f.id}')"><span class="id">${f.id}</span><span class="n">${esc(f.name)}</span><span class="bar"><i style="width:${[0,12,30,58,100][f.j]||10}%;background:${z.col};opacity:${ALPHA[f.st]||.5}"></i></span><span class="st">${f.st}</span></div>`).join('');
-  showCard(`<div class="kicker">${esc(z.plane.name)} · zona ${z.num}</div><h2>${esc(z.name)}</h2>
+  showCard(`<div class="kicker">${esc(z.plane.name)} · zona ${z.num}</div><div class="hrow"><h2>${esc(z.name)}</h2>${helpBtn('zone',z.nodeId)}</div>
     <div class="sec"><div class="kicker">Qué se describe acá</div><div class="human"><p>${esc(z.razon||'')}</p></div></div>
     <div class="sec"><div class="kicker">Campos · ${z.fields.length}</div><div class="flist">${rows}</div></div>`,
     `#zr-${z.nodeId},[data-z="${z.nodeId}"],`+z.fields.map(f=>`#blk-${f.id},#fl-${f.id},.chord[data-f~="${f.id}"]`).join(','));
@@ -275,7 +280,7 @@ function openField(f){
   const df=(DEFS.fields||{})[f.id]||{};const def=df.definicion||(f.body.match(/^_(.+?)_/m)||[])[1]||'';
   const vocab=(df.vocab||[]).length?`<div class="sec"><div class="kicker">Vocabulario del campo</div><div class="vocab">${df.vocab.map(v=>{const t=typeof v==='string'?v:v.t;const on=(f.valor||'').toLowerCase().includes(t.toLowerCase());return`<span class="${on?'on':''}">${esc(t)}</span>`}).join('')}</div></div>`:'';
   const ckey=`${V}:field:${f.id}`;const cm=COMMENTS[ckey];
-  showCard(`<div class="kicker">${esc(f.plane.name)} · <b>${esc(f.zone.name)}</b> · ${f.id}</div><h2>${esc(f.titular||f.name)}</h2><div class="q">${f.titular?`<b>${esc(f.name)}</b> · `:''}${esc(def)}${f.name0&&f.name0!==f.name?` <span class="pill" title="título anterior en la ficha canónica">antes: ${esc(f.name0)}</span>`:''}</div>
+  showCard(`<div class="kicker">${esc(f.plane.name)} · <b>${esc(f.zone.name)}</b> · ${f.id}</div><div class="hrow"><h2>${esc(f.titular||f.name)}</h2>${helpBtn('field',f.id)}</div><div class="q">${f.titular?`<b>${esc(f.name)}</b> · `:''}${esc(def)}${f.name0&&f.name0!==f.name?` <span class="pill" title="título anterior en la ficha canónica">antes: ${esc(f.name0)}</span>`:''}</div>
     <div class="sec"><div class="kicker">Dato</div><div class="val">${esc(f.valor||'—')}</div>
       <div class="kv"><b>Unidad</b><span>${esc(f.unidad||'—')}</span><b>Importancia</b><span>J${f.j} · ${JWORD[f.j]||''}${f.imp0&&f.imp0!==f.importancia?` <span class="pill" title="valor en la ficha canónica">antes: ${esc(f.imp0)}</span>`:''}</span><b>Estado</b><span>${f.st==='conflicto'?'<span class="pill conf">conflicto</span> ':''}${esc(f.estado||'')}</span><b>Confianza</b><span>${esc(f.confianza||'—')}</span><b>Fuentes</b><span>${srcHtml(f.fuente)||'—'}</span>${df.tipo?`<b>Tipo</b><span>${esc(df.tipo)}${df.cardinalidad?' · '+esc(df.cardinalidad):''}</span>`:''}</div></div>
     ${vocab}
@@ -286,6 +291,33 @@ function openField(f){
   const svg=$('#plate');svg.querySelectorAll('.rel').forEach(e=>e.classList.remove('rel'));f.rel.forEach(r=>{['#blk-','#fl-'].forEach(pre=>{const e=svg.querySelector(pre+CSS.escape(r.f.id));if(e)e.classList.add('rel')})});
   const ta=$('#cmt');let t;if(!ta)return;ta.addEventListener('input',()=>{clearTimeout(t);t=setTimeout(()=>saveComment(ta),900)});ta.addEventListener('blur',()=>{clearTimeout(t);saveComment(ta)});
 }
+
+/* ---------- guía: el "?" que explica qué es cada parte (como la guía de ayuda de la cámara) ---------- */
+const PLANE_TXT={'SINTAXIS':'Cómo está hecha la lámpara: identidad, programa, forma, partes y uniones, ley formal, materia y fabricación y comportamiento luminotécnico. Es el plano de los hechos verificables: lo que se mide, se cuenta y se documenta.',
+ 'PRAGMÁTICA':'Cómo se vive: dónde se usa, cómo se instala, cómo se interactúa con ella y qué hace la luz en el espacio. Es el plano del uso y de la experiencia.',
+ 'SEMÁNTICA':'Qué dice: a qué arquetipo pertenece, qué lenguaje formal habla, qué comunican sus partes y su luz, y qué familia arma. Es el plano del significado.'};
+let HELP=null; // {kind,id,html,selector}
+function helpBtn(kind,id){return `<button class="help" title="qué es esto" onclick="event.stopPropagation();toggleHelp('${kind}','${String(id).replace(/'/g,"\\'")}')">?</button>`}
+function fieldDefRow(f){const df=(DEFS.fields||{})[f.id]||{};const def=df.definicion||(f.body.match(/^_(.+?)_/m)||[])[1]||'';
+  return `<div class="def"><b><small>${f.id}</small> ${esc(f.name)} <small>· J${f.j} ${JWORD[f.j]||''}</small></b>${esc(def)}${df.tipo?` <small>· ${esc(df.tipo)}${df.cardinalidad?' · '+esc(df.cardinalidad):''}</small>`:''}${(df.vocab||[]).length?`<div class="vocab">${df.vocab.map(v=>`<span>${esc(typeof v==='string'?v:v.t)}</span>`).join('')}</div>`:''}</div>`}
+function guideHtml(kind,obj){
+  if(kind==='plane'){const p=obj;return `<div class="kicker">Qué es este plano</div><div class="hrow"><h2>${esc(p.name.charAt(0)+p.name.slice(1).toLowerCase())}</h2>${helpBtn('plane',p.name)}</div><div class="q">${QUESTION[p.name]||''}</div>
+    <div class="sec guide"><div class="human"><p>${esc(PLANE_TXT[p.name]||'')}</p>${paras(introRest(p))}</div></div>
+    <div class="sec guide"><div class="kicker">Sus zonas y qué se carga en cada una</div>${p.zones.map(z=>`<div class="def"><b>${z.num} · ${esc(z.name)} <small>· ${z.fields.length} campos</small></b>${z.pregunta?`<i>${esc(z.pregunta)}</i><br>`:''}${esc(z.razon||'')}</div>`).join('')}</div>
+    <div class="sec guide"><div class="kicker">Vocabulario del plano</div><div class="human"><p>${esc(p.zones.flatMap(z=>z.fields.map(f=>f.name)).join(' · '))}</p></div></div>`}
+  if(kind==='zone'){const z=obj;return `<div class="kicker">Qué es esta zona · ${esc(z.plane.name)}</div><div class="hrow"><h2>${esc(z.name)}</h2>${helpBtn('zone',z.nodeId)}</div>${z.pregunta?`<div class="q">${esc(z.pregunta)}</div>`:''}
+    <div class="sec guide"><div class="kicker">Qué se carga acá y por qué</div><div class="human"><p>${esc(z.razon||'')}</p></div></div>
+    <div class="sec guide"><div class="kicker">Sus campos, uno por uno</div>${z.fields.map(fieldDefRow).join('')}</div>`}
+  const f=obj;const df=(DEFS.fields||{})[f.id]||{};const def=df.definicion||(f.body.match(/^_(.+?)_/m)||[])[1]||'';
+  return `<div class="kicker">Qué es este campo · ${esc(f.plane.name)} · ${esc(f.zone.name)}</div><div class="hrow"><h2>${esc(f.name)}</h2>${helpBtn('field',f.id)}</div><div class="q">${f.id}</div>
+    <div class="sec guide"><div class="kicker">Qué se carga acá</div><div class="human"><p>${esc(def)}</p>${df.tipo?`<p><small>Tipo de dato: ${esc(df.tipo)}${df.cardinalidad?' · cardinalidad '+esc(df.cardinalidad):''}${df.unidad?' · unidad '+esc(df.unidad):''}</small></p>`:''}</div></div>
+    <div class="sec guide"><div class="kicker">Por qué está</div><div class="human"><p>${esc(f.zone.razon||'')}</p><p><b>Importancia J${f.j} · ${JWORD[f.j]||''}</b>: ${{4:'define a esta lámpara (máximo tres por ficha).',3:'hace falta para poder rehacerla.',2:'completa la descripción.',1:'dato administrativo o de contexto.'}[f.j]||''}</p></div></div>
+    ${(df.vocab||[]).length?`<div class="sec guide"><div class="kicker">Vocabulario admitido</div><div class="vocab">${df.vocab.map(v=>`<span>${esc(typeof v==='string'?v:v.t)}</span>`).join('')}</div></div>`:''}
+    <div class="sec guide"><div class="kicker">Cómo se lee</div><div class="human"><p>Estado del dato: documentado (fuente escrita) · observado (visto en fotos o en la pieza) · inferido (deducido) · interpretado (lectura del que llena) · desconocido. Confianza: cuánto fiarse. Fuentes: de dónde sale.</p></div></div>`}
+function toggleHelp(kind,id){const body=$('#cardBody');
+  if(HELP&&HELP.kind===kind&&HELP.id===id){body.innerHTML=HELP.html;HELP=null;$('#card').scrollTop=0;if(kind==='field'){const ta=$('#cmt');if(ta){let t;ta.addEventListener('input',()=>{clearTimeout(t);t=setTimeout(()=>saveComment(ta),900)});ta.addEventListener('blur',()=>{clearTimeout(t);saveComment(ta)})}}return}
+  let obj=null;if(kind==='plane')obj=DATA[V].planes.find(p=>p.name===id);else if(kind==='zone'){for(const p of DATA[V].planes)for(const z of p.zones)if(z.nodeId===id)obj=z}else{for(const p of DATA[V].planes)for(const z of p.zones)for(const f of z.fields)if(f.id===id)obj=f}
+  if(!obj)return;HELP={kind,id,html:body.innerHTML};body.innerHTML=guideHtml(kind,obj);$('#card').scrollTop=0;const b=body.querySelector('.help');if(b)b.classList.add('on')}
 async function saveComment(ta){const key=ta.dataset.key,label=ta.dataset.label,text=ta.value;const prev=COMMENTS[key]?COMMENTS[key].text:'';if(text===prev)return;
   const r=await fetch('api/comments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,label,text})});
   const s=$('#saved');if(!r.ok){s.textContent='no se pudo guardar';return}
@@ -315,6 +347,6 @@ setTheme('fgp');
 setInterval(()=>{if($('#base').classList.contains('on'))loadOolJobs()},5000);
 (async()=>{const [d,c,df,ls]=await Promise.all([fetch('api/data.json').then(r=>r.json()),fetch('api/comments.json').then(r=>r.json()),fetch('api/defs.json').then(r=>r.json()),fetch('api/lamps.json').then(r=>r.json())]);DATA=d;COMMENTS=c;DEFS=df;LAMPS=ls;const h=decodeURIComponent(location.hash.slice(1));V=(h&&DATA[h])?h:(LAMPS[0]||{}).id||Object.keys(DATA)[0];render()})();
 </script>
-<!-- OOL · exportación estática 2026-09-07 14:13 · generada por build_static.py -->
+<!-- OOL · exportación estática 2026-09-07 15:46 · generada por build_static.py -->
 </body>
 </html>
